@@ -34,7 +34,6 @@ Path to a directory where plots can be saved as files. Keep NULL if no output fi
 }
 \value{
 The value returned is a vector with named elements, with each element being the percent of sample windows where model forecasts were within confidence level, and each element name being the confidence level.}
-}
 \author{
 James Tunnell
 }
