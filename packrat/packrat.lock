@@ -1,0 +1,150 @@
+PackratFormat: 1.4
+PackratVersion: 0.4.3
+RVersion: 3.1.2
+Repos: CRAN=http://cran.rstudio.com
+
+Package: R6
+Source: CRAN
+Version: 2.0.1
+Hash: 9a3ac4e5fd8059af0fc5156bcb019bbc
+
+Package: RCurl
+Source: CRAN
+Version: 1.95-4.6
+Hash: a4d86df231587d1eae56f29c278bad0d
+Requires: bitops
+
+Package: Rcpp
+Source: CRAN
+Version: 0.11.6
+Hash: 004f4ffa4d0f4a3d177f2090799225e8
+
+Package: bitops
+Source: CRAN
+Version: 1.0-6
+Hash: cb26464a8321628636b547518994c931
+
+Package: brew
+Source: CRAN
+Version: 1.0-6
+Hash: 9d92cc5ac60123fdb7b0daa3ae83bf99
+
+Package: devtools
+Source: CRAN
+Version: 1.7.0
+Hash: 56919e22e0d3f7131e93bda1a869730e
+Requires: RCurl, digest, evaluate, httr, jsonlite, memoise, roxygen2,
+    rstudioapi, whisker
+
+Package: digest
+Source: CRAN
+Version: 0.6.8
+Hash: 89dc4c8734dad5322bb3c5c2af09056f
+
+Package: dse
+Source: CRAN
+Version: 2014.11-1
+Hash: 4ac1d3c3a708377ff11526467a532b54
+Requires: setRNG, tfplot, tframe
+
+Package: evaluate
+Source: CRAN
+Version: 0.7
+Hash: 96c38894bf65a2e890f7c6ec840a6466
+Requires: stringr
+
+Package: httr
+Source: CRAN
+Version: 0.6.1
+Hash: 3b082465d75a7a0c3d09ad06a0905aff
+Requires: R6, RCurl, digest, jsonlite, mime, stringr
+
+Package: jsonlite
+Source: CRAN
+Version: 0.9.16
+Hash: d96313db22c1ea2028538db1fc96fe5a
+
+Package: magrittr
+Source: CRAN
+Version: 1.5
+Hash: 38d492cf072bc9f3c73bda2aee3d0e23
+
+Package: memoise
+Source: CRAN
+Version: 0.2.1
+Hash: fc52fa39dfd216c44d64812ff31b1c67
+Requires: digest
+
+Package: mime
+Source: CRAN
+Version: 0.3
+Hash: 843fd754c122f266d910a04642e0703d
+
+Package: packrat
+Source: CRAN
+Version: 0.4.3
+Hash: 16c72d5c802629fae5a4abca901e0199
+
+Package: roxygen2
+Source: CRAN
+Version: 4.1.1
+Hash: bf0325183fa7f6e9cdd9f82b8e6c50b4
+Requires: Rcpp, brew, digest, stringr
+
+Package: rstudioapi
+Source: CRAN
+Version: 0.3.1
+Hash: ee415a4fe305c6222630d8e5572781e7
+
+Package: setRNG
+Source: CRAN
+Version: 2013.9-1
+Hash: a3af5231ab16b917018c589eacef437c
+
+Package: stringi
+Source: CRAN
+Version: 0.4-1
+Hash: 955e96fc5961bf9f7b3ca916f9b1e606
+
+Package: stringr
+Source: CRAN
+Version: 1.0.0
+Hash: 513045488dcf8019cc2f4305dc7d1f90
+Requires: magrittr, stringi
+
+Package: tfplot
+Source: CRAN
+Version: 2015.4-1
+Hash: 7d6e5726dda741201038a146c75770b6
+Requires: tframe
+
+Package: tframe
+Source: CRAN
+Version: 2015.1-1
+Hash: 25d6b19e1ce6aa1ba65392ea2eac2c15
+
+Package: timeDate
+Source: CRAN
+Version: 3012.100
+Hash: 347e629697adb6b10040c338aaf67c88
+
+Package: urca
+Source: CRAN
+Version: 1.2-8
+Hash: 0e2fd4d2f2910832a82cfe0320dc7eb6
+
+Package: whisker
+Source: CRAN
+Version: 0.3-2
+Hash: 186ab2937fec1694c8a63009a2389c4e
+
+Package: xts
+Source: CRAN
+Version: 0.9-7
+Hash: be4b6faab98ec342c7aa497a903d7b43
+Requires: zoo
+
+Package: zoo
+Source: CRAN
+Version: 1.7-12
+Hash: 977920b31482e9fd9cf116d5c600ca55

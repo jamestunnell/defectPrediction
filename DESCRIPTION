@@ -1,0 +1,10 @@
+Package: defectPrediction
+Type: Package
+Title: Predict software defects using a time series model.
+Version: 1.0
+Date: 2015-05-05
+Author: James Tunnell
+Maintainer: James Tunnell <jamestunnell@gmail.com>
+Description: For predicting defects in a software project using a time series modelling approach, given historical data from the project issue tracking system. A vector AR model with exogenous variables (VARX) model is used. The model structure has number of defect (created) as an endogenous variable, and number of new features (resolved) and number of improvements (resolved) as exogenous variables.
+License: Unlimited
+Depends: dse, xts, timeDate, urca
