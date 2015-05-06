@@ -29,7 +29,7 @@ forecast.intervals <- function(model, ci){
 # Compute forecasts (w/ confidence intervals) for different
 # hypothetical  values of nimps and nnews.
 forecast.hypotheticals <- function(
-  model.est, data.base, ci, imps.hypoth, news.hypoth){
+  model, data.base, ci, imps.hypoth, news.hypoth){
   data.ext <- ts.extend.one(data.base)
   row.last <- nrow(data.ext$input)
   labs <- ts.labels(data.base)
@@ -51,7 +51,7 @@ forecast.hypotheticals <- function(
       y[k] <- news.hypoth[j]
       
       data.ext$input[row.last,c(labs$imps,labs$news)] <- c(x[k],y[k])
-      fc <- forecast(TSmodel(model.est), data.ext)
+      fc <- forecast(TSmodel(model), data.ext)
       
       z_ <- fc$forecast[[1]][1,]
       lohi <- z_ + d

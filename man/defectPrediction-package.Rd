@@ -16,20 +16,9 @@ Version: \tab 1.0\cr
 Date: \tab 2015-05-05\cr
 License: \tab Unlimited\cr
 }
-The primary function is \code{model.regime}. The function evaluates the time series data for stationarity, differences if needed, and performs the modeling methodology repeatedly over a sliding sample window. The results ofover the sliding window are reported.
 }
 \author{
 James Tunnell
 
 Maintainer: James Tunnell <jamestunnell@gmail.com>
-}
-\examples{
-  \dontrun{
-    model.regime(issues.file = "issues.txt",
-                 sampling.period = 7,
-                 window.size = 50,
-                 ndiffs = 1,
-                 out.dir = "~/modeling"
-                 )
-  }
 }

@@ -5,9 +5,11 @@ library(xts)
 # @param sampling.period Sampling period length, in days.
 # @param window.size The number of samples to include in a window for modeling.
 # @param ndiffs The number of differences to take, for non-stationary time series data.
+# @param conf.level Confidence level(s) to use in testing model forecast performance
 # @param our.dir Path to a directory where plots can be saved as files
 #' @export
-model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1, out.dir=NULL){
+model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1, 
+                         conf.levels=c(75,90), out.dir=NULL){
   
   issues <- read.table(issues.file, header = T)
   s <- sample.issues.all(issues, sampling.period)
@@ -17,18 +19,24 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1, ou
   # cat("             Pre-Modeling\n")
   # cat("=========================================\n\n")
   
-  # cat("Plotting time-series\n")
-  fname <- file.path(out.dir, "time_series.eps")
-  ts.plot(ts, fname)
+  if(!is.null(out.dir)){
+    # cat("Plotting time-series\n")
+    fname <- file.path(out.dir, "time_series.eps")
+    ts.plot(ts, fname)    
+  }
+  
+  if(!is.null(out.dir)){
+    fname <- file.path(out.dir, "stationarity.txt")
+    cat("", file = fname, append = F)
+  }
   
   ST_TYPE = "constant"
-  
-  fname <- file.path(out.dir, "stationarity.txt")
-  cat("", file = fname, append = F)
   needs.diffed = F
   for(i in 1:ncol(ts)){
     st <- test.stationarity(ts[,i], type = ST_TYPE, df.level = 1, kpss.level = 10)
-    print.stationarity(st, names(ts)[i], fname)
+    if(!is.null(out.dir)){
+      print.stationarity(st, names(ts)[i], fname)
+    }
     if(!st$df$stationary | !st$kpss$stationary){
       needs.diffed <- T
     }
@@ -40,23 +48,25 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1, ou
       ts[,i] <- diff(ts[,i], differences = ndiffs)
       names(ts)[i] <- paste(names(ts)[i],"(Difference)")
       st <- test.stationarity(ts[(1+ndiffs):nrow(ts),i], type = ST_TYPE, df.level = 1, kpss.level = 10)
-      print.stationarity(st, names(ts)[i], fname)
+      if(!is.null(out.dir)){
+        print.stationarity(st, names(ts)[i], fname)
+      }
       stopifnot(st$df$stationary & st$kpss$stationary)
     }
     
-    #   cat("Plotting differenced time-series\n")
-    fname <- file.path(out.dir, "time_series_diff.eps")
-    ts.plot(ts[2:nrow(ts)], fname)
-    #   cat("\n")
+    if(!is.null(out.dir)){
+      #   cat("Plotting differenced time-series\n")
+      fname <- file.path(out.dir, "time_series_diff.eps")
+      ts.plot(ts[2:nrow(ts)], fname)
+      #   cat("\n")
+    }
   }
-  
-  #n.windows <- floor(nrow(s) / window.size)
-  ci <- c(0.9,0.75)
   
   labs <- list(bugs = names(ts)[pmatch("Bug",names(ts))],
                imps = names(ts)[pmatch("Imp",names(ts))],
                news = names(ts)[pmatch("Fea",names(ts))])
   
+  ci <- rev(sort(conf.levels)) / 100
   ci.inout <- mat.or.vec(length(ci),2)
   rownames(ci.inout) <- paste0(100*ci,"% conf")
   colnames(ci.inout) <- c("in","out")
@@ -83,10 +93,11 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1, ou
       next
     }
     
-    #   cat("Plotting one-step ahead predictions\n")
-    fname <- file.path(out.dir, paste0("one-step_predictions_", s.min, "-", s.max, ".eps"))
-    plot.predictions(model, s.range, fname, width = 8, height = 3, cex = 1.35)
-    
+    if(!is.null(out.dir)){
+      #   cat("Plotting one-step ahead predictions\n")
+      fname <- file.path(out.dir, paste0("one-step_predictions_", s.min, "-", s.max, ".eps"))
+      plot.predictions(model, s.range, fname, width = 8, height = 3, cex = 1.35)
+    }
     #   cat("=========================================\n")
     #   cat("             Forecasting\n")
     #   cat("=========================================\n\n")
@@ -154,31 +165,32 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1, ou
     #       theta = -120, phi=20, ticktype = "detailed")
     #   garbage <- dev.off()
     
-    fname <- file.path(out.dir, paste0("forecast_hypotheticals", s.min, "-", s.max, ".csv"))
-    forecasts <- data.frame(imps=x, news= y)
-    for(cname in colnames(z)){
-      forecasts[[cname]] <- z[,cname]
-    }
-    write.table(forecasts, file = fname, row.names = F, sep = ",")
     
+    if(!is.null(out.dir)){
+      fname <- file.path(out.dir, paste0("forecast_hypotheticals", s.min, "-", s.max, ".csv"))
+      forecasts <- data.frame(imps=x, news= y)
+      for(cname in colnames(z)){
+        forecasts[[cname]] <- z[,cname]
+      }
+      write.table(forecasts, file = fname, row.names = F, sep = ",")
+    }
     cat("\n")
   }
   
-  for(i in 1:nrow(ci.inout)){
-    frac <- ci.inout[i,"in"]/sum(ci.inout[i,])
-    cat(paste0(100*round(frac,4),"%"),"in", rownames(ci.inout)[i],"\n")
+  if(!is.null(out.dir)){
+    fname <- file.path(out.dir, paste0("hist_forecast_errors.eps"))
+    postscript(file=fname, width=800, height=600,
+               onefile=TRUE, horizontal=FALSE)
+    hist(fc.errs, xlab = "Error of forecast mean", main = "", breaks="FD")
+    garbage <- dev.off()
+    
+    fname <- file.path(out.dir, paste0("qq_plot_forecast_errors.eps"))
+    postscript(file=fname, width=800, height=600,
+               onefile=TRUE, horizontal=FALSE)
+    qqnorm(fc.errs)
+    qqline(fc.errs, distribution = qnorm)
+    garbage <- dev.off()
   }
-  
-  fname <- file.path(out.dir, paste0("hist_forecast_errors.eps"))
-  postscript(file=fname, width=800, height=600,
-             onefile=TRUE, horizontal=FALSE)
-  hist(fc.errs, xlab = "Error of forecast mean", main = "", breaks="FD")
-  garbage <- dev.off()
-  
-  fname <- file.path(out.dir, paste0("qq_plot_forecast_errors.eps"))
-  postscript(file=fname, width=800, height=600,
-             onefile=TRUE, horizontal=FALSE)
-  qqnorm(fc.errs)
-  qqline(fc.errs, distribution = qnorm)
-  garbage <- dev.off()
+  retval <- ci.inout[,"in"] / (ci.inout[,"in"] + ci.inout[,"out"])
+  return(retval)
 }
