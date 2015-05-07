@@ -9,7 +9,7 @@ library(xts)
 # @param our.dir Path to a directory where plots can be saved as files
 #' @export
 model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1, 
-                         conf.levels=c(75,90), out.dir=NULL){
+                         conf.levels=c(75,90), out.dir=NULL, verbose = FALSE){
   
   issues <- read.table(issues.file, header = T)
   s <- sample.issues.all(issues, sampling.period)
@@ -78,10 +78,12 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1,
     s.range <- s.min:s.max
     ts.sub <- ts[s.range]
     
-    #   cat("=========================================\n")
-    #   cat("        Modeling samples", s.min, "to", s.max, "\n")
-    #   cat("=========================================\n\n")
-    cat(s.min, "to", s.max, ":")
+    if(verbose){
+      #   cat("=========================================\n")
+      #   cat("        Modeling samples", s.min, "to", s.max, "\n")
+      #   cat("=========================================\n\n")
+      cat(s.min, "to", s.max, ":")      
+    }
     
     ts.data <- TSdata(
       output = as.matrix(ts.sub[,labs$bugs]),
@@ -174,7 +176,9 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1,
       }
       write.table(forecasts, file = fname, row.names = F, sep = ",")
     }
-    cat("\n")
+    if(verbose){
+      cat("\n")
+    }
   }
   
   if(!is.null(out.dir)){

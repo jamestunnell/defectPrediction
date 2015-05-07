@@ -6,7 +6,7 @@ Time series modeling regime for software defect prediction, using issue tracking
 The function starts by extracting time series data from the given issues file. It then evaluates the data for stationarity, differences if needed, and performs the modeling methodology repeatedly over a sliding sample window. The results over the sliding window are reported.
 }
 \usage{
-model.regime(issues.file, sampling.period, window.size, ndiffs = 1, conf.level = c(75,90) out.dir = NULL)
+model.regime(issues.file, sampling.period, window.size, ndiffs = 1, conf.level = c(75,90) out.dir = NULL, verbose = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -28,6 +28,9 @@ Confidence level(s) to use in testing model forecast performance
   \item{out.dir}{
 Path to a directory where plots can be saved as files. Keep NULL if no output files are desired
 }
+  \item{verbose}{
+    If TRUE, print actual future values for all time series variables, at each window.
+  }
 }
 \details{
 
