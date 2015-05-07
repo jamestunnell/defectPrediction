@@ -4,11 +4,11 @@ library(xts)
 # @param issues.file A text file, containing CSV-like table, with software issue data.
 # @param sampling.period Sampling period length, in days.
 # @param window.size The number of samples to include in a window for modeling.
-# @param ndiffs The number of differences to take, for non-stationary time series data.
-# @param conf.level Confidence level(s) to use in testing model forecast performance
+# @param ndiff The number of differences to take, for non-stationary time series data.
+# @param conf.levels Confidence level(s) to use in testing model forecast performance
 # @param our.dir Path to a directory where plots can be saved as files
 #' @export
-model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1, 
+model.regime <- function(issues.file, sampling.period, window.size, ndiff=1, 
                          conf.levels=c(75,90), out.dir=NULL, verbose = FALSE){
   
   issues <- read.table(issues.file, header = T)
@@ -42,12 +42,12 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1,
     }
   }
   
-  ndiffs = if(needs.diffed){ ndiffs } else { 0 }
+  ndiff = if(needs.diffed){ ndiff } else { 0 }
   if(needs.diffed){
     for(i in 1:ncol(ts)){
-      ts[,i] <- diff(ts[,i], differences = ndiffs)
+      ts[,i] <- diff(ts[,i], differences = ndiff)
       names(ts)[i] <- paste(names(ts)[i],"(Difference)")
-      st <- test.stationarity(ts[(1+ndiffs):nrow(ts),i], type = ST_TYPE, df.level = 1, kpss.level = 10)
+      st <- test.stationarity(ts[(1+ndiff):nrow(ts),i], type = ST_TYPE, df.level = 1, kpss.level = 10)
       if(!is.null(out.dir)){
         print.stationarity(st, names(ts)[i], fname)
       }
@@ -72,7 +72,7 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1,
   colnames(ci.inout) <- c("in","out")
   fc.errs <- NULL
   
-  for(w.start in (1+ndiffs):(nrow(ts)-window.size)){
+  for(w.start in (1+ndiff):(nrow(ts)-window.size)){
     s.min <- w.start
     s.max <- w.start + window.size - 1
     s.range <- s.min:s.max
@@ -123,23 +123,23 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiffs=1,
       news.hypoth <- sort(append(news.hypoth, news.actual))
     }
     
-    if(ndiffs > 0){
+    if(ndiff > 0){
       imps.hypoth <- imps.hypoth - s$imps[s.max]
       news.hypoth <- news.hypoth - s$news[s.max]
     }
-    if(ndiffs > 1){
+    if(ndiff > 1){
       imps.hypoth <- imps.hypoth - diff(s$imps)[s.max]
       news.hypoth <- news.hypoth - diff(s$news)[s.max]    
     }
     results <- forecast.hypotheticals(model, ts.data, ci=ci,
                                       imps.hypoth=imps.hypoth, news.hypoth=news.hypoth)
     x <- results$x; y <- results$y; z <- results$z
-    if(ndiffs > 1){
+    if(ndiff > 1){
       x <- x + diff(s$imps)[s.max]
       y <- y + diff(s$news)[s.max]
       z <- z + diff(s$bugs)[s.max]
     }
-    if(ndiffs > 0){
+    if(ndiff > 0){
       x <- x + s$imps[s.max]
       y <- y + s$news[s.max]
       z <- z + s$bugs[s.max]
