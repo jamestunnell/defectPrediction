@@ -91,7 +91,9 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiff=1,
     )
     model <- modeling.methodology(ts.data, verbose = F)
     if(is.null(model)){
-      cat("No valid models found for this sample range. Skipping.\n")
+      if(verbose){
+        cat("No valid models found for this sample range. Skipping.\n")
+      }
       next
     }
     
