@@ -115,7 +115,10 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiff=1,
     imps.actual <- s$imps[s.max+1]
     news.actual <- s$news[s.max+1]
     bugs.actual <- s$bugs[s.max+1]
-    cat("actual imps, news, and bugs:", imps.actual, news.actual, bugs.actual)
+    if(verbose){
+      cat("actual imps, news, and bugs:", imps.actual, news.actual, bugs.actual)
+    }
+    
     if(!(imps.actual %in% imps.hypoth)){
       imps.hypoth <- sort(append(imps.hypoth, imps.actual))
     }
