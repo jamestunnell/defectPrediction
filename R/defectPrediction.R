@@ -9,10 +9,18 @@ library(xts)
 # @param our.dir Path to a directory where plots can be saved as files
 #' @export
 model.regime <- function(issues.file, sampling.period, window.size, ndiff=1, 
-                         conf.levels=c(75,90), out.dir=NULL, verbose = FALSE){
+                         conf.levels=c(75,90), out.dir=NULL, verbose = FALSE,
+                         start.date = NULL, end.date = NULL){
   
   issues <- read.table(issues.file, header = T)
-  s <- sample.issues.all(issues, sampling.period)
+  if(is.null(start.date) & is.null(end.date)){
+    s <- sample.issues.all(issues, sampling.period)  
+  } else if(is.null(end.date)){
+    s <- sample.issues.from(issues, sampling.period, start.date)
+  } else {
+    s <- sample.issues.until(issues, sampling.period, end.date)
+  }
+  
   ts <- as.xts(data.frame(Bugs=s$bugs, Improvements=s$imps, Features=s$news), s$date)
   
   # cat("=========================================\n")

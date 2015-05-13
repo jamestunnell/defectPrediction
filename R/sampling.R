@@ -9,6 +9,24 @@ sample.issues.all <- function(issues, period){
   return(s)
 }
 
+sample.issues.from <- function(issues, period, startdate){
+  created <- timeDate(issues$created)
+  resolved <- timeDate(issues$resolved)
+  min <- timeDate(startdate)
+  max <- max(created,resolved)
+  s <- sample.issues.dateRange(issues,min,max,period)
+  return(s)
+}
+
+sample.issues.until <- function(issues, period, enddate){
+  created <- timeDate(issues$created)
+  resolved <- timeDate(issues$resolved)
+  min <- max(created,resolved)
+  max <- timeDate(enddate)
+  s <- sample.issues.dateRange(issues,min,max,period)
+  return(s)
+}
+
 sample.issues.dateRange <- function(issues, startdate, enddate, period){
   startdate <- timeDate(startdate)
   enddate <- timeDate(enddate)
