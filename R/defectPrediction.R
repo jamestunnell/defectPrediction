@@ -1,5 +1,6 @@
 library(dse)
 library(xts)
+library(car)
 
 # @param issues.file A text file, containing CSV-like table, with software issue data.
 # @param sampling.period Sampling period length, in days.
@@ -204,8 +205,7 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiff=1,
     fname <- file.path(out.dir, paste0("qq_plot_forecast_errors.eps"))
     postscript(file=fname, width=800, height=600,
                onefile=TRUE, horizontal=FALSE)
-    qqnorm(fc.errs)
-    qqline(fc.errs, distribution = qnorm)
+    qqPlot(fc.errs)
     garbage <- dev.off()
   }
   retval <- ci.inout[,"in"] / (ci.inout[,"in"] + ci.inout[,"out"])
