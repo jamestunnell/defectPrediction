@@ -131,9 +131,13 @@ pre.modeling <- function(issues.file, sampling.period, ndiff = 1,
 #' @export
 model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
                          conf.levels=c(75,90), out.dir=NULL, verbose = FALSE){  
+  stopifnot(ndiff >= 0 & ndiff <= 2)
+  
   ts <- ts.data
-  if(ndiff > 0){
-    ts.diffed <- diff(ts, differences = ndiff)
+  if(ndiff == 1){
+    ts.diffed1 <- diff(ts)
+  } else if(ndiff == 2){
+    ts.diffed2 <- diff(ts, differences = 2)
   }
   
   labs <- list(bugs = names(ts)[pmatch("Bug",names(ts))],
@@ -155,12 +159,15 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
     s.min <- w.start
     s.max <- w.start + window.size - 1
     s.range <- s.min:s.max
-    ts.sub <- ts[s.range]
+    ts.sub <- if(ndiff == 0){
+      ts[s.range,]
+    } else if(ndiff == 1){
+      ts.diffed1[s.range,]
+    } else if(ndiff == 2){
+      ts.diffed2[s.range,]
+    }
     
     if(verbose){
-      #   cat("=========================================\n")
-      #   cat("        Modeling samples", s.min, "to", s.max, "\n")
-      #   cat("=========================================\n\n")
       cat(s.min, "to", s.max, ":")      
     }
     
@@ -192,9 +199,6 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
       fname <- file.path(out.dir, paste0("one-step_predictions_", s.min, "-", s.max, ".eps"))
       plot.predictions(model, s.range, fname, width = 8, height = 3, cex = 1.35)
     }
-    #   cat("=========================================\n")
-    #   cat("             Forecasting\n")
-    #   cat("=========================================\n\n")
     
     tmp1 <- quantile(ts[s.range,labs$imps], probs = c(0.25,0.75), type=6)
     tmp2 <- quantile(ts[s.range,labs$news], probs = c(0.25,0.75), type=6)
@@ -204,9 +208,9 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
     imps.hypoth <- seq(from = tmp1[['25%']], to = tmp1[['75%']], by = 2)
     news.hypoth <- seq(from = tmp2[['25%']], to = tmp2[['75%']], by = 1)
     
-    imps.actual <- as.integer(ts[s.max+1,labs$imps])
-    news.actual <- as.integer(ts[s.max+1,labs$news])
-    bugs.actual <- as.integer(ts[s.max+1,labs$bugs])
+    imps.actual <- ts[[s.max+1,labs$imps]]
+    news.actual <- ts[[s.max+1,labs$news]]
+    bugs.actual <- ts[[s.max+1,labs$bugs]]
     if(verbose){
       cat("actual imps, news, and bugs:", imps.actual, news.actual, bugs.actual)
     }
@@ -219,25 +223,25 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
     }
     
     if(ndiff > 0){
-      imps.hypoth <- as.integer(imps.hypoth - ts[s.max,labs$imps])
-      news.hypoth <- as.integer(news.hypoth - ts[s.max,labs$news])
+      imps.hypoth <- imps.hypoth - ts[[s.max,labs$imps]]
+      news.hypoth <- news.hypoth - ts[[s.max,labs$news]]
     }
     if(ndiff > 1){
-      imps.hypoth <- as.integer(imps.hypoth - diff(ts)[s.max,labs$imps])
-      news.hypoth <- as.integer(news.hypoth - diff(ts)[s.max,labs$news])
+      imps.hypoth <- imps.hypoth - ts.diffed1[[s.max,labs$imps]]
+      news.hypoth <- news.hypoth - ts.diffed1[[s.max,labs$news]]
     }
     results <- forecast.hypotheticals(model, ts.data, ci=ci,
                                       imps.hypoth=imps.hypoth, news.hypoth=news.hypoth)
     x <- results$x; y <- results$y; z <- results$z
     if(ndiff > 1){
-      x <- x + as.integer(diff(ts[,labs$imps])[s.max])
-      y <- y + as.integer(diff(ts[,labs$news])[s.max])
-      z <- z + as.integer(diff(ts[,labs$bugs])[s.max])
+      x <- x + ts.diffed1[[s.max,labs$imps]]
+      y <- y + ts.diffed1[[s.max,labs$news]]
+      z <- z + ts.diffed1[[s.max,labs$bugs]]
     }
     if(ndiff > 0){
-      x <- x + as.integer(ts[s.max,labs$imps])
-      y <- y + as.integer(ts[s.max,labs$news])
-      z <- z + as.integer(ts[s.max,labs$bugs])
+      x <- x + ts[[s.max,labs$imps]]
+      y <- y + ts[[s.max,labs$news]]
+      z <- z + ts[[s.max,labs$bugs]]
     }
     
     actual.at <- which(x == imps.actual & y == news.actual)
