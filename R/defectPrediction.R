@@ -134,10 +134,11 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
   stopifnot(ndiff >= 0 & ndiff <= 2)
   
   ts <- ts.data
-  if(ndiff == 1){
+  if(ndiff > 0){
     ts.diffed1 <- diff(ts)
-  } else if(ndiff == 2){
-    ts.diffed2 <- diff(ts, differences = 2)
+    if(ndiff > 1){
+      ts.diffed2 <- diff(ts, differences = 2)
+    }
   }
   
   labs <- list(bugs = names(ts)[pmatch("Bug",names(ts))],
