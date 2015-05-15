@@ -1,4 +1,5 @@
 require(urca)
+require(fBasics)
 
 test.stationarity <- function(x, type, df.level, kpss.level)
 {
@@ -62,4 +63,16 @@ print.stationarity <- function(stationarity.results, series.name, fname){
   cat("\n", file = fname, append = T)
   cat("KPSS:",s$kpss$statistic, paste0("(",s$kpss$signif,")\n"), file = fname, append = T)
   cat("\n", file = fname, append = T)
+}
+
+test.normality <- function(x, alpha){
+  results <- jbTest(x)
+  p.val <- results@test$p.value["ALM p-value"]
+  if(is.na(p.val)){
+    p.val <- 0
+  }
+  return(list(
+    p.value = p.val,
+    is.normal = p.val >= alpha
+  ))
 }

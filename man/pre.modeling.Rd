@@ -20,6 +20,12 @@ pre.modeling(issues.file, sampling.period, ndiff = 1, start.date = NULL,
 
 \item{our.dir}{Path to a directory where stationarity report(s) can be saved as files}
 }
+\value{
+The value returned is a list:
+\item{ts}{An xts time series with data sampled from issues}
+\item{ndiff}{If time series are all stationary, this will be 0.
+Otherwise, it will equal the value of the fuction's ndiff parameter.}
+}
 \description{
 Pre-modeling: issue loading, sampling, and stationarity testing.
 }

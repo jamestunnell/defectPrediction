@@ -13,6 +13,12 @@ library(car)
 #' @param end.date The date to stop sampling time series data. If left NULL, then sampling ends as late as possible.
 #' @param our.dir Path to a directory where stationarity report(s) can be saved as files
 #' 
+#' @return
+#' The value returned is a list:
+#' \item{ts}{An xts time series with data sampled from issues}
+#' \item{ndiff}{If time series are all stationary, this will be 0. 
+#' Otherwise, it will equal the value of the fuction's ndiff parameter.}
+#' 
 #' @note
 #' The issues file that is being used should be a text table, and loadable by
 #' \code{read.table(issues.file, header = T)} alone. The table should have 
@@ -100,16 +106,22 @@ pre.modeling <- function(issues.file, sampling.period, ndiff = 1,
 #' @param ts.data An xts time series
 #' @param window.size The number of samples to include in a window for modeling.
 #' @param ndiff The number of differences to take. Leave at 0 if no differencing is needed.
+#' @param norm.signif Significance (alpha level) to use in normality testing of model residuals
 #' @param conf.levels Confidence level(s) to use in testing model forecast performance. 
 #' Should be greater than 0 and less than 100.
 #' @param our.dir Path to a directory where plots can be saved as files
 #' @param verbose If TRUE, extra info is printed
 #' 
 #' @return
-#' The value returned is a vector with named elements, with each element being
-#' the percent of sample windows where model forecasts were within confidence level,
-#' and each element name being the confidence level.
-#' 
+#' The value returned is a list 
+#' \item{n.windows}{The total number of sample windows where methodology was applied.}
+#' \item{n.nonevalid}{The number of windows where no valid model was found.}
+#' \item{n.nonnormal}{The number of windows where model residuals were non-normal.}
+#' \item{n.outconf}{The number of windows where the model forecast were outside 
+#' confidence level(s). This is a named vector.}
+#' \item{n.inconf}{The number of windows where the model forecast were within 
+#' confidence level(s). This is a named vector.}
+#'  
 #' @examples
 #' \dontrun{
 #' ts.data <- pre.modeling("~/issues.txt", 7, start.date = "2002-01-01",
@@ -117,7 +129,7 @@ pre.modeling <- function(issues.file, sampling.period, ndiff = 1,
 #' result <- model.regime(ts.data, 48, ndiff = 1, out.dir="~/testrun")
 #' }
 #' @export
-model.regime <- function(ts.data, window.size, ndiff=0, 
+model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
                          conf.levels=c(75,90), out.dir=NULL, verbose = FALSE){  
   ts <- ts.data
   if(ndiff > 0){
@@ -134,7 +146,12 @@ model.regime <- function(ts.data, window.size, ndiff=0,
   colnames(ci.inout) <- c("in","out")
   fc.errs <- NULL
   
+  n.none.valid <- 0
+  n.non.normal <- 0
+  n.windows <- 0
   for(w.start in (1+ndiff):(nrow(ts)-window.size)){
+    n.windows <- n.windows + 1
+    
     s.min <- w.start
     s.max <- w.start + window.size - 1
     s.range <- s.min:s.max
@@ -153,8 +170,19 @@ model.regime <- function(ts.data, window.size, ndiff=0,
     )
     model <- modeling.methodology(ts.data, verbose = F)
     if(is.null(model)){
+      n.none.valid <- n.none.valid + 1
       if(verbose){
         cat("No valid models found for this sample range. Skipping.\n")
+      }
+      next
+    }
+    
+    residuals <- (model$estimates$pred - model$data$output)
+    normality.result <- test.normality(residuals, normality.signif)
+    if(!normality.result$is.normal){
+      n.non.normal <- n.non.normal + 1
+      if(verbose){
+        cat("Non-normal residuals found. Skipping.\n")
       }
       next
     }
@@ -261,6 +289,11 @@ model.regime <- function(ts.data, window.size, ndiff=0,
     qqPlot(fc.errs)
     garbage <- dev.off()
   }
-  retval <- ci.inout[,"in"] / (ci.inout[,"in"] + ci.inout[,"out"])
-  return(retval)
+  in.ci <- ci.inout[,"in"] / (ci.inout[,"in"] + ci.inout[,"out"])
+  return(list(n.windows = n.windows,
+              n.nonevalid = n.none.valid,
+              n.nonnormal = n.non.normal,
+              n.outconf = ci.inout[,"out"],
+              n.inconf = ci.inout[,"in"]
+        ))
 }

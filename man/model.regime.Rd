@@ -4,8 +4,8 @@
 \alias{model.regime}
 \title{Time series modeling methodology over a sliding window.}
 \usage{
-model.regime(ts.data, window.size, ndiff = 0, conf.levels = c(75, 90),
-  out.dir = NULL, verbose = FALSE)
+model.regime(ts.data, window.size, ndiff = 0, normality.signif = 0.1,
+  conf.levels = c(75, 90), out.dir = NULL, verbose = FALSE)
 }
 \arguments{
 \item{ts.data}{An xts time series}
@@ -19,12 +19,19 @@ Should be greater than 0 and less than 100.}
 
 \item{verbose}{If TRUE, extra info is printed}
 
+\item{norm.signif}{Significance (alpha level) to use in normality testing of model residuals}
+
 \item{our.dir}{Path to a directory where plots can be saved as files}
 }
 \value{
-The value returned is a vector with named elements, with each element being
-the percent of sample windows where model forecasts were within confidence level,
-and each element name being the confidence level.
+The value returned is a list
+\item{n.windows}{The total number of sample windows where methodology was applied.}
+\item{n.nonevalid}{The number of windows where no valid model was found.}
+\item{n.nonnormal}{The number of windows where model residuals were non-normal.}
+\item{n.outconf}{The number of windows where the model forecast were outside
+confidence level(s). This is a named vector.}
+\item{n.inconf}{The number of windows where the model forecast were within
+confidence level(s). This is a named vector.}
 }
 \description{
 A modeling regime for setting up software defect prediction model, built using
