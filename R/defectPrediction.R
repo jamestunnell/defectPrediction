@@ -2,17 +2,33 @@ library(dse)
 library(xts)
 library(car)
 
-# @param issues.file A text file, containing CSV-like table, with software issue data.
-# @param sampling.period Sampling period length, in days.
-# @param window.size The number of samples to include in a window for modeling.
-# @param ndiff The number of differences to take, for non-stationary time series data.
-# @param conf.levels Confidence level(s) to use in testing model forecast performance
-# @param our.dir Path to a directory where plots can be saved as files
+#' Pre-modeling: issue loading, sampling, and stationarity testing.
+#' 
+#' @author James Tunnell
+#' 
+#' @param issues.file A text file, containing CSV-like table, with software issue data.
+#' @param sampling.period Sampling period length, in days.
+#' @param ndiff Number of differences to take if needed
+#' @param start.date The date to start sampling time series data. If left NULL, then sampling begins as early as possible.
+#' @param end.date The date to stop sampling time series data. If left NULL, then sampling ends as late as possible.
+#' @param our.dir Path to a directory where stationarity report(s) can be saved as files
+#' 
+#' @note
+#' The issues file that is being used should be a text table, and loadable by
+#' \code{read.table(issues.file, header = T)} alone. The table should have 
+#' columns for: created, resolved, and type. The type must be one of: "bug", 
+#' "improvement", or "newfeature". The created and resolved fields are for 
+#' date-time string that can be interpreted using \code{timeDate(mystr)}.
+#' 
+#' @examples
+#' \dontrun{
+#' ts.data <- pre.modeling("~/issues.txt", 7, start.date = "2002-01-01",
+#'  out.dir="~/testrun")
+#' }
+#' 
 #' @export
-model.regime <- function(issues.file, sampling.period, window.size, ndiff=1, 
-                         conf.levels=c(75,90), out.dir=NULL, verbose = FALSE,
-                         start.date = NULL, end.date = NULL){
-  
+pre.modeling <- function(issues.file, sampling.period, ndiff = 1, 
+                         start.date = NULL, end.date = NULL, out.dir = NULL){
   issues <- read.table(issues.file, header = T)
   if(is.null(start.date) & is.null(end.date)){
     s <- sample.issues.all(issues, sampling.period)  
@@ -23,10 +39,6 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiff=1,
   }
   
   ts <- as.xts(data.frame(Bugs=s$bugs, Improvements=s$imps, Features=s$news), s$date)
-  
-  # cat("=========================================\n")
-  # cat("             Pre-Modeling\n")
-  # cat("=========================================\n\n")
   
   if(!is.null(out.dir)){
     # cat("Plotting time-series\n")
@@ -51,14 +63,16 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiff=1,
     }
   }
   
+  ts.diffed <- NULL
   ndiff = if(needs.diffed){ ndiff } else { 0 }
   if(needs.diffed){
+    ts.diffed <- diff(ts)
+    
     for(i in 1:ncol(ts)){
-      ts[,i] <- diff(ts[,i], differences = ndiff)
-      names(ts)[i] <- paste(names(ts)[i],"(Difference)")
-      st <- test.stationarity(ts[(1+ndiff):nrow(ts),i], type = ST_TYPE, df.level = 1, kpss.level = 10)
+      names(ts.diffed)[i] <- paste(names(ts.diffed)[i],"(Difference)")
+      st <- test.stationarity(ts.diffed[(1+ndiff):nrow(ts.diffed),i], type = ST_TYPE, df.level = 1, kpss.level = 10)
       if(!is.null(out.dir)){
-        print.stationarity(st, names(ts)[i], fname)
+        print.stationarity(st, names(ts.diffed)[i], fname)
       }
       stopifnot(st$df$stationary & st$kpss$stationary)
     }
@@ -66,9 +80,48 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiff=1,
     if(!is.null(out.dir)){
       #   cat("Plotting differenced time-series\n")
       fname <- file.path(out.dir, "time_series_diff.eps")
-      ts.plot(ts[2:nrow(ts)], fname)
+      ts.plot(ts.diffed[ndiff:nrow(ts),], fname)
       #   cat("\n")
     }
+  }
+  
+  return(list(ts = ts,ndiff = ndiff))
+}
+
+#' Time series modeling methodology over a sliding window.
+#' 
+#' @author James Tunnell
+#' 
+#' @description
+#' A modeling regime for setting up software defect prediction model, built using
+#' issue tracking system data. Performs the modeling methodology repeatedly over 
+#' a sliding sample window.
+#' 
+#' @param ts.data An xts time series
+#' @param window.size The number of samples to include in a window for modeling.
+#' @param ndiff The number of differences to take. Leave at 0 if no differencing is needed.
+#' @param conf.levels Confidence level(s) to use in testing model forecast performance. 
+#' Should be greater than 0 and less than 100.
+#' @param our.dir Path to a directory where plots can be saved as files
+#' @param verbose If TRUE, extra info is printed
+#' 
+#' @return
+#' The value returned is a vector with named elements, with each element being
+#' the percent of sample windows where model forecasts were within confidence level,
+#' and each element name being the confidence level.
+#' 
+#' @examples
+#' \dontrun{
+#' ts.data <- pre.modeling("~/issues.txt", 7, start.date = "2002-01-01",
+#'  out.dir="~/testrun")
+#' result <- model.regime(ts.data, 48, ndiff = 1, out.dir="~/testrun")
+#' }
+#' @export
+model.regime <- function(ts.data, window.size, ndiff=0, 
+                         conf.levels=c(75,90), out.dir=NULL, verbose = FALSE){  
+  ts <- ts.data
+  if(ndiff > 0){
+    ts.diffed <- diff(ts, differences = ndiff)
   }
   
   labs <- list(bugs = names(ts)[pmatch("Bug",names(ts))],
@@ -115,17 +168,17 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiff=1,
     #   cat("             Forecasting\n")
     #   cat("=========================================\n\n")
     
-    tmp1 <- quantile(s$imps[s.range], probs = c(0.25,0.75), type=6)
-    tmp2 <- quantile(s$news[s.range], probs = c(0.25,0.75), type=6)
+    tmp1 <- quantile(ts[s.range,labs$imps], probs = c(0.25,0.75), type=6)
+    tmp2 <- quantile(ts[s.range,labs$news], probs = c(0.25,0.75), type=6)
     
     # Used for hypothetical forecasting. Not differenced values!
     # They will be converted if needed
     imps.hypoth <- seq(from = tmp1[['25%']], to = tmp1[['75%']], by = 2)
     news.hypoth <- seq(from = tmp2[['25%']], to = tmp2[['75%']], by = 1)
     
-    imps.actual <- s$imps[s.max+1]
-    news.actual <- s$news[s.max+1]
-    bugs.actual <- s$bugs[s.max+1]
+    imps.actual <- as.integer(ts[s.max+1,labs$imps])
+    news.actual <- as.integer(ts[s.max+1,labs$news])
+    bugs.actual <- as.integer(ts[s.max+1,labs$bugs])
     if(verbose){
       cat("actual imps, news, and bugs:", imps.actual, news.actual, bugs.actual)
     }
@@ -138,25 +191,25 @@ model.regime <- function(issues.file, sampling.period, window.size, ndiff=1,
     }
     
     if(ndiff > 0){
-      imps.hypoth <- imps.hypoth - s$imps[s.max]
-      news.hypoth <- news.hypoth - s$news[s.max]
+      imps.hypoth <- as.integer(imps.hypoth - ts[s.max,labs$imps])
+      news.hypoth <- as.integer(news.hypoth - ts[s.max,labs$news])
     }
     if(ndiff > 1){
-      imps.hypoth <- imps.hypoth - diff(s$imps)[s.max]
-      news.hypoth <- news.hypoth - diff(s$news)[s.max]    
+      imps.hypoth <- as.integer(imps.hypoth - diff(ts)[s.max,labs$imps])
+      news.hypoth <- as.integer(news.hypoth - diff(ts)[s.max,labs$news])
     }
     results <- forecast.hypotheticals(model, ts.data, ci=ci,
                                       imps.hypoth=imps.hypoth, news.hypoth=news.hypoth)
     x <- results$x; y <- results$y; z <- results$z
     if(ndiff > 1){
-      x <- x + diff(s$imps)[s.max]
-      y <- y + diff(s$news)[s.max]
-      z <- z + diff(s$bugs)[s.max]
+      x <- x + as.integer(diff(ts[,labs$imps])[s.max])
+      y <- y + as.integer(diff(ts[,labs$news])[s.max])
+      z <- z + as.integer(diff(ts[,labs$bugs])[s.max])
     }
     if(ndiff > 0){
-      x <- x + s$imps[s.max]
-      y <- y + s$news[s.max]
-      z <- z + s$bugs[s.max]
+      x <- x + as.integer(ts[s.max,labs$imps])
+      y <- y + as.integer(ts[s.max,labs$news])
+      z <- z + as.integer(ts[s.max,labs$bugs])
     }
     
     actual.at <- which(x == imps.actual & y == news.actual)
