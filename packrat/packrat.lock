@@ -30,6 +30,11 @@ Source: CRAN
 Version: 1.6
 Hash: ebefb2caf6ba73d3202d5153db1af0d8
 
+Package: akima
+Source: CRAN
+Version: 0.5-11
+Hash: 5d8c90646820832cd86c1cfa32b4feb4
+
 Package: bitops
 Source: CRAN
 Version: 1.0-6
@@ -69,6 +74,17 @@ Source: CRAN
 Version: 0.7
 Hash: 96c38894bf65a2e890f7c6ec840a6466
 Requires: stringr
+
+Package: fBasics
+Source: CRAN
+Version: 3011.87
+Hash: aa04636db12241ef2878fa0a4092a5be
+Requires: gss, stabledist, timeDate, timeSeries
+
+Package: gss
+Source: CRAN
+Version: 2.1-4
+Hash: 764fc1c74878273dad4c4c8e13741f79
 
 Package: httr
 Source: CRAN
@@ -114,6 +130,16 @@ Source: CRAN
 Version: 1.0.4
 Hash: 2197af13ece296fdf1dd8f8a4e5a40e1
 
+Package: nortest
+Source: CRAN
+Version: 1.0-3
+Hash: 2d589f83d21b6e01eea0a69c292654a4
+
+Package: outliers
+Source: CRAN
+Version: 0.14
+Hash: c8e876902d5e1b1677b833f72e735b1f
+
 Package: packrat
 Source: CRAN
 Version: 0.4.3
@@ -147,6 +173,11 @@ Source: CRAN
 Version: 2013.9-1
 Hash: a3af5231ab16b917018c589eacef437c
 
+Package: stabledist
+Source: CRAN
+Version: 0.7-0
+Hash: c6f44be353a97b3df830c8406d0675fe
+
 Package: stringi
 Source: CRAN
 Version: 0.4-1
@@ -173,6 +204,12 @@ Package: timeDate
 Source: CRAN
 Version: 3012.100
 Hash: 347e629697adb6b10040c338aaf67c88
+
+Package: timeSeries
+Source: CRAN
+Version: 3012.99
+Hash: 13e45ec9c381ad49bbdda2818c239c2c
+Requires: timeDate
 
 Package: urca
 Source: CRAN

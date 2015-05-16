@@ -1,3 +1,5 @@
+library(dse)
+
 est.models <- function(ts.data, max.order, verbose = F){
   if(verbose){
     cat("Estimating models up to order", max.order)

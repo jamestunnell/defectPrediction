@@ -1,6 +1,6 @@
-library(dse)
 library(xts)
 library(car)
+library(outliers)
 
 #' Pre-modeling: issue loading, sampling, and stationarity testing.
 #' 
@@ -185,7 +185,7 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
       next
     }
     
-    residuals <- (model$estimates$pred - model$data$output)
+    residuals <- rm.outlier(model$estimates$pred - model$data$output)
     normality.result <- test.normality(residuals, normality.signif)
     if(!normality.result$is.normal){
       n.non.normal <- n.non.normal + 1
