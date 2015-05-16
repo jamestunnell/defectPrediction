@@ -121,6 +121,7 @@ pre.modeling <- function(issues.file, sampling.period, ndiff = 1,
 #' confidence level(s). This is a named vector.}
 #' \item{n.inconf}{The number of windows where the model forecast were within 
 #' confidence level(s). This is a named vector.}
+#' \item{fc.errs}{Forecast errors from all the sample windows}
 #'  
 #' @examples
 #' \dontrun{
@@ -299,6 +300,7 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
               n.nonevalid = n.none.valid,
               n.nonnormal = n.non.normal,
               n.outconf = ci.inout[,"out"],
-              n.inconf = ci.inout[,"in"]
+              n.inconf = ci.inout[,"in"],
+              fc.errs = fc.errs
         ))
 }
