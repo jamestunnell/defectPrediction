@@ -69,26 +69,28 @@ pre.modeling <- function(issues.file, sampling.period, ndiff = 1,
     }
   }
   
-  ts.diffed <- NULL
-  ndiff = if(needs.diffed){ ndiff } else { 0 }
-  if(needs.diffed){
-    ts.diffed <- diff(ts)
-    
-    for(i in 1:ncol(ts)){
-      names(ts.diffed)[i] <- paste(names(ts.diffed)[i],"(Difference)")
-      st <- test.stationarity(ts.diffed[(1+ndiff):nrow(ts.diffed),i], type = ST_TYPE, df.level = 1, kpss.level = 10)
-      if(!is.null(out.dir)){
-        print.stationarity(st, names(ts.diffed)[i], fname)
+  if(ndiff > 0){
+    ts.diffed <- NULL
+    ndiff = if(needs.diffed){ ndiff } else { 0 }
+    if(needs.diffed){
+      ts.diffed <- diff(ts, differences = ndiff)
+      
+      for(i in 1:ncol(ts)){
+        names(ts.diffed)[i] <- paste(names(ts.diffed)[i],"(Difference)")
+        st <- test.stationarity(ts.diffed[(1+ndiff):nrow(ts.diffed),i], type = ST_TYPE, df.level = 1, kpss.level = 10)
+        if(!is.null(out.dir)){
+          print.stationarity(st, names(ts.diffed)[i], fname)
+        }
+        stopifnot(st$df$stationary & st$kpss$stationary)
       }
-      stopifnot(st$df$stationary & st$kpss$stationary)
-    }
-    
-    if(!is.null(out.dir)){
-      #   cat("Plotting differenced time-series\n")
-      fname <- file.path(out.dir, "time_series_diff.eps")
-      ts.plot(ts.diffed[ndiff:nrow(ts),], fname)
-      #   cat("\n")
-    }
+      
+      if(!is.null(out.dir)){
+        #   cat("Plotting differenced time-series\n")
+        fname <- file.path(out.dir, "time_series_diff.eps")
+        ts.plot(ts.diffed[ndiff:nrow(ts),], fname)
+        #   cat("\n")
+      }
+    }    
   }
   
   return(list(ts = ts,ndiff = ndiff))
