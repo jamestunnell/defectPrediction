@@ -1,6 +1,6 @@
-library(xts)
-library(car)
-library(outliers)
+capture.output(library(xts, quietly = T))
+capture.output(library(car, quietly = T))
+capture.output(library(outliers, quietly = T))
 
 #' Pre-modeling: issue loading, sampling, and stationarity testing.
 #' 

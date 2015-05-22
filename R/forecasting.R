@@ -1,4 +1,4 @@
-library(dse)
+capture.output(library(dse, quietly = T))
 
 ts.labels <- function(ts.data){
   names.out <- colnames(ts.data$output)
