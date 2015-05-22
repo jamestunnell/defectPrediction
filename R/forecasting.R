@@ -1,4 +1,6 @@
-capture.output(library(dse, quietly = T))
+sink("/dev/null") 
+library(dse)
+sink() 
 
 ts.labels <- function(ts.data){
   names.out <- colnames(ts.data$output)

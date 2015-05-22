@@ -1,6 +1,8 @@
-capture.output(library(xts, quietly = T))
-capture.output(library(car, quietly = T))
-capture.output(library(outliers, quietly = T))
+sink("/dev/null") 
+library(xts, quietly = T)
+library(car, quietly = T)
+library(outliers, quietly = T)
+sink() 
 
 #' Pre-modeling: issue loading, sampling, and stationarity testing.
 #' 

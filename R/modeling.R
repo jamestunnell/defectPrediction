@@ -1,4 +1,6 @@
-capture.output(library(dse, quietly = T))
+sink("/dev/null") 
+library(dse)
+sink()
 
 est.models <- function(ts.data, max.order, verbose = F){
   if(verbose){
