@@ -1,5 +1,5 @@
-require(urca)
-require(fBasics)
+invisible(capture.output(library(urca)))
+invisible(capture.output(library(fBasics)))
 
 test.stationarity <- function(x, type, df.level, kpss.level)
 {

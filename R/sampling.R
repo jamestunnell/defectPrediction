@@ -1,5 +1,4 @@
-require(timeDate)
-require(xts)
+invisible(capture.output(library(timeDate)))
 
 sample.issues.all <- function(issues, period){
   created <- timeDate(issues$created)

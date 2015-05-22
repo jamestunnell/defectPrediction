@@ -1,6 +1,4 @@
-sink("/dev/null") 
-library(dse)
-sink()
+invisible(capture.output(library(dse)))
 
 est.models <- function(ts.data, max.order, verbose = F){
   if(verbose){

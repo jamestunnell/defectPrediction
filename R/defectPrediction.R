@@ -1,8 +1,6 @@
-sink("/dev/null") 
-library(xts, quietly = T)
-library(car, quietly = T)
-library(outliers, quietly = T)
-sink() 
+invisible(capture.output(library(xts)))
+invisible(capture.output(library(car)))
+invisible(capture.output(library(outliers)))
 
 #' Pre-modeling: issue loading, sampling, and stationarity testing.
 #' 
