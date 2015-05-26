@@ -4,7 +4,7 @@
 \alias{pre.modeling}
 \title{Pre-modeling: issue loading, sampling, and stationarity testing.}
 \usage{
-pre.modeling(issues.file, sampling.period, ndiff = 1, start.date = NULL,
+pre.modeling(issues.file, sampling.period, max.ndiff = 2, start.date = NULL,
   end.date = NULL, out.dir = NULL)
 }
 \arguments{
@@ -12,7 +12,7 @@ pre.modeling(issues.file, sampling.period, ndiff = 1, start.date = NULL,
 
 \item{sampling.period}{Sampling period length, in days.}
 
-\item{ndiff}{Number of differences to take if needed}
+\item{max.ndiff}{Maximum number of differences to take for stationarity evaluation (and plotting)}
 
 \item{start.date}{The date to start sampling time series data. If left NULL, then sampling begins as early as possible.}
 
@@ -23,8 +23,8 @@ pre.modeling(issues.file, sampling.period, ndiff = 1, start.date = NULL,
 \value{
 The value returned is a list:
 \item{ts}{An xts time series with data sampled from issues}
-\item{ndiff}{If time series are all stationary, this will be 0.
-Otherwise, it will equal the value of the fuction's ndiff parameter.}
+\item{needs.diffed}{If time series are all stationary, this will be FALSE.
+Otherwise, it will be TRUE.}
 }
 \description{
 Pre-modeling: issue loading, sampling, and stationarity testing.

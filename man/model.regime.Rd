@@ -32,6 +32,7 @@ The value returned is a list
 confidence level(s). This is a named vector.}
 \item{n.inconf}{The number of windows where the model forecast were within
 confidence level(s). This is a named vector.}
+\item{fc.errs}{Forecast errors from all the sample windows}
 }
 \description{
 A modeling regime for setting up software defect prediction model, built using

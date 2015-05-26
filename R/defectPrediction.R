@@ -8,7 +8,7 @@ invisible(capture.output(library(outliers)))
 #' 
 #' @param issues.file A text file, containing CSV-like table, with software issue data.
 #' @param sampling.period Sampling period length, in days.
-#' @param ndiff Number of differences to take if needed
+#' @param max.ndiff Maximum number of differences to take for stationarity evaluation (and plotting)
 #' @param start.date The date to start sampling time series data. If left NULL, then sampling begins as early as possible.
 #' @param end.date The date to stop sampling time series data. If left NULL, then sampling ends as late as possible.
 #' @param our.dir Path to a directory where stationarity report(s) can be saved as files
@@ -16,8 +16,8 @@ invisible(capture.output(library(outliers)))
 #' @return
 #' The value returned is a list:
 #' \item{ts}{An xts time series with data sampled from issues}
-#' \item{ndiff}{If time series are all stationary, this will be 0. 
-#' Otherwise, it will equal the value of the fuction's ndiff parameter.}
+#' \item{needs.diffed}{If time series are all stationary, this will be FALSE. 
+#' Otherwise, it will be TRUE.}
 #' 
 #' @note
 #' The issues file that is being used should be a text table, and loadable by
@@ -33,7 +33,7 @@ invisible(capture.output(library(outliers)))
 #' }
 #' 
 #' @export
-pre.modeling <- function(issues.file, sampling.period, ndiff = 1, 
+pre.modeling <- function(issues.file, sampling.period, max.ndiff = 2, 
                          start.date = NULL, end.date = NULL, out.dir = NULL){
   issues <- read.table(issues.file, header = T)
   if(is.null(start.date) & is.null(end.date)){
@@ -48,13 +48,13 @@ pre.modeling <- function(issues.file, sampling.period, ndiff = 1,
   
   if(!is.null(out.dir)){
     # cat("Plotting time-series\n")
-    fname <- file.path(out.dir, "time_series.eps")
-    ts.plot(ts, fname)    
+    plot.fname <- file.path(out.dir, paste0("time_series_",sampling.period,".eps"))
+    ts.plot(ts, plot.fname)    
   }
   
   if(!is.null(out.dir)){
-    fname <- file.path(out.dir, "stationarity.txt")
-    cat("", file = fname, append = F)
+    stat.fname <- file.path(out.dir, paste0("stationarity_", sampling.period, ".txt"))
+    cat("", file = stat.fname, append = F)
   }
   
   ST_TYPE = "constant"
@@ -62,38 +62,34 @@ pre.modeling <- function(issues.file, sampling.period, ndiff = 1,
   for(i in 1:ncol(ts)){
     st <- test.stationarity(ts[,i], type = ST_TYPE, df.level = 1, kpss.level = 10)
     if(!is.null(out.dir)){
-      print.stationarity(st, names(ts)[i], fname)
+      print.stationarity(st, names(ts)[i], stat.fname)
     }
     if(!st$df$stationary | !st$kpss$stationary){
       needs.diffed <- T
     }
   }
   
-  if(ndiff > 0){
-    ts.diffed <- NULL
-    ndiff = if(needs.diffed){ ndiff } else { 0 }
-    if(needs.diffed){
-      ts.diffed <- diff(ts, differences = ndiff)
-      
-      for(i in 1:ncol(ts)){
-        names(ts.diffed)[i] <- paste(names(ts.diffed)[i],"(Difference)")
-        st <- test.stationarity(ts.diffed[(1+ndiff):nrow(ts.diffed),i], type = ST_TYPE, df.level = 1, kpss.level = 10)
-        if(!is.null(out.dir)){
-          print.stationarity(st, names(ts.diffed)[i], fname)
-        }
-        stopifnot(st$df$stationary & st$kpss$stationary)
-      }
-      
+  for(ndiff in 1:max.ndiff){
+    ts.diffed <- diff(ts, differences = ndiff)
+    
+    for(i in 1:ncol(ts)){
+      names(ts.diffed)[i] <- paste(names(ts.diffed)[i],paste0("(",ndiff," Difference)"))
+      st <- test.stationarity(ts.diffed[(1+ndiff):nrow(ts.diffed),i], type = ST_TYPE, df.level = 1, kpss.level = 10)
       if(!is.null(out.dir)){
-        #   cat("Plotting differenced time-series\n")
-        fname <- file.path(out.dir, "time_series_diff.eps")
-        ts.plot(ts.diffed[ndiff:nrow(ts),], fname)
-        #   cat("\n")
+        print.stationarity(st, names(ts.diffed)[i], stat.fname)
       }
-    }    
+      stopifnot(st$df$stationary & st$kpss$stationary)
+    }
+    
+    if(!is.null(out.dir)){
+      #   cat("Plotting differenced time-series\n")
+      plot.fname <- file.path(out.dir, paste0("time_series_", sampling.period, "_diff_", ndiff, ".eps"))
+      ts.plot(ts.diffed[ndiff:nrow(ts),], plot.fname)
+      #   cat("\n")
+    }
   }
   
-  return(list(ts = ts,ndiff = ndiff))
+  return(list(ts = ts, needs.diffed = needs.diffed))
 }
 
 #' Time series modeling methodology over a sliding window.

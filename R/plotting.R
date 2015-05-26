@@ -1,7 +1,8 @@
-ts.plot <- function(ts, fname, width = 8, height.each = 2, cex=1.5){
+ts.plot <- function(ts, fname, width = 6, height.each = 1.5, cex=1){
   postscript(file=fname, width=width, height=height.each*ncol(ts),
-             onefile=TRUE, horizontal=FALSE)
-  par(cex.lab=cex, cex.axis=cex, mfrow=c(ncol(ts),1))
+             onefile=TRUE, horizontal=FALSE, colormodel = "rgb", 
+             family = "Times", pointsize = 16)
+  par(cex.lab=cex, cex.axis=cex, mfrow=c(ncol(ts),1), mar=c(2,5,1.5,2))
   
   for(i in 1:ncol(ts)){
     y <- as.vector(ts[,i])
