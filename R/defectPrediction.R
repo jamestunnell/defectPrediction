@@ -106,6 +106,7 @@ pre.modeling <- function(issues.file, sampling.period, max.ndiff = 2,
 #' @param ndiff The number of differences to take. Leave at 0 if no differencing is needed.
 #' @param norm.signif Significance (alpha level) to use in normality testing of model residuals
 #' @param conf.levels Confidence level(s) to use in testing model forecast performance. 
+#' @param K.min The minimum allowable ratio of observations to model parameters
 #' Should be greater than 0 and less than 100.
 #' @param our.dir Path to a directory where plots can be saved as files
 #' @param verbose If TRUE, extra info is printed
@@ -120,6 +121,7 @@ pre.modeling <- function(issues.file, sampling.period, max.ndiff = 2,
 #' \item{n.inconf}{The number of windows where the model forecast were within 
 #' confidence level(s). This is a named vector.}
 #' \item{fc.errs}{Forecast errors from all the sample windows}
+#' \item{model.orders}{The model orders used in all windows}
 #'  
 #' @examples
 #' \dontrun{
@@ -129,7 +131,7 @@ pre.modeling <- function(issues.file, sampling.period, max.ndiff = 2,
 #' }
 #' @export
 model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
-                         conf.levels=c(75,90), out.dir=NULL, verbose = FALSE){  
+                         conf.levels=c(75,90), out.dir=NULL, verbose = FALSE, K.min = 4){  
   stopifnot(ndiff >= 0 & ndiff <= 2)
   
   ts <- ts.data
@@ -146,9 +148,12 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
   
   ci <- rev(sort(conf.levels)) / 100
   ci.inout <- mat.or.vec(length(ci),2)
-  rownames(ci.inout) <- paste0(100*ci,"% conf")
+  rownames(ci.inout) <- as.character(100*ci)
   colnames(ci.inout) <- c("in","out")
+  bugs.actuals <- NULL
+  fc.means <- NULL
   fc.errs <- NULL
+  model.orders <- NULL
   
   n.none.valid <- 0
   n.non.normal <- 0
@@ -175,14 +180,15 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
       output = as.matrix(ts.sub[,labs$bugs]),
       input = as.matrix(ts.sub[,c(labs$imps,labs$news)])
     )
-    model <- modeling.methodology(ts.data, verbose = F)
+    mod.results <- modeling.methodology(ts.data, K.min = 4, verbose = F)
+    model <- mod.results$model
     if(is.null(model)){
       n.none.valid <- n.none.valid + 1
       if(verbose){
         cat("No valid models found for this sample range. Skipping.\n")
       }
       next
-    }
+    } 
     
     residuals <- rm.outlier(model$estimates$pred - model$data$output)
     normality.result <- test.normality(residuals, normality.signif)
@@ -193,6 +199,8 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
       }
       next
     }
+
+    model.orders <- append(model.orders, mod.results$order)
     
     if(!is.null(out.dir)){
       #   cat("Plotting one-step ahead predictions\n")
@@ -246,6 +254,8 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
     
     actual.at <- which(x == imps.actual & y == news.actual)
     fc.mean <- z[actual.at, ceiling(ncol(z)/2)]
+    fc.means <- append(fc.means, fc.mean)
+    bugs.actuals <- append(bugs.actuals, bugs.actual)
     fc.errs <- append(fc.errs, fc.mean - bugs.actual)
     
     for(i in 1:floor(ncol(z)/2)){
@@ -292,6 +302,9 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
                onefile=TRUE, horizontal=FALSE)
     qqPlot(fc.errs)
     garbage <- dev.off()
+    
+    df <- data.frame(model.order = model.orders, bugs.actual = bugs.actuals, fc.mean = fc.means)
+    write.table(df, file = file.path(out.dir, "model.regime.txt"), row.names = F)
   }
   in.ci <- ci.inout[,"in"] / (ci.inout[,"in"] + ci.inout[,"out"])
   return(list(n.windows = n.windows,
@@ -299,6 +312,7 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
               n.nonnormal = n.non.normal,
               n.outconf = ci.inout[,"out"],
               n.inconf = ci.inout[,"in"],
-              fc.errs = fc.errs
+              fc.errs = fc.errs,
+              model.orders = model.orders
         ))
 }
