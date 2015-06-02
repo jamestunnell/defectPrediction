@@ -5,7 +5,8 @@
 \title{Time series modeling methodology over a sliding window.}
 \usage{
 model.regime(ts.data, window.size, ndiff = 0, normality.signif = 0.1,
-  conf.levels = c(75, 90), out.dir = NULL, verbose = FALSE, K.min = 4)
+  conf.levels = c(75, 90), out.dir = NULL, verbose = FALSE, K.min = 4,
+  write.extra = F)
 }
 \arguments{
 \item{ts.data}{An xts time series}
@@ -20,6 +21,8 @@ model.regime(ts.data, window.size, ndiff = 0, normality.signif = 0.1,
 
 \item{K.min}{The minimum allowable ratio of observations to model parameters
 Should be greater than 0 and less than 100.}
+
+\item{write.extra}{If TRUE, write extra output files for all windows (one-step predictions and forecasting of hypotheticals)}
 
 \item{norm.signif}{Significance (alpha level) to use in normality testing of model residuals}
 

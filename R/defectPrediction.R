@@ -113,6 +113,7 @@ pre.modeling <- function(issues.file, sampling.period, max.ndiff = 2,
 #' Should be greater than 0 and less than 100.
 #' @param our.dir Path to a directory where plots can be saved as files
 #' @param verbose If TRUE, extra info is printed
+#' @param write.extra If TRUE, write extra output files for all windows (one-step predictions and forecasting of hypotheticals)
 #' 
 #' @return
 #' The value returned is a list 
@@ -134,7 +135,8 @@ pre.modeling <- function(issues.file, sampling.period, max.ndiff = 2,
 #' }
 #' @export
 model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
-                         conf.levels=c(75,90), out.dir=NULL, verbose = FALSE, K.min = 4){  
+                         conf.levels=c(75,90), out.dir=NULL, verbose = FALSE, K.min = 4,
+                         write.extra = F){  
   stopifnot(ndiff >= 0 & ndiff <= 2)
   
   ts <- ts.data
@@ -205,7 +207,7 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
 
     model.orders <- append(model.orders, mod.results$order)
     
-    if(!is.null(out.dir)){
+    if(!is.null(out.dir) & write.extra){
       #   cat("Plotting one-step ahead predictions\n")
       fname <- file.path(out.dir, paste0("one-step_predictions_", s.min, "-", s.max, ".eps"))
       plot.predictions(model, s.range, fname, width = 8, height = 3, cex = 1.35)
@@ -280,7 +282,7 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
     #   garbage <- dev.off()
     
     
-    if(!is.null(out.dir)){
+    if(!is.null(out.dir) & write.extra){
       fname <- file.path(out.dir, paste0("forecast_hypotheticals", s.min, "-", s.max, ".csv"))
       forecasts <- data.frame(imps=x, news= y)
       for(cname in colnames(z)){
