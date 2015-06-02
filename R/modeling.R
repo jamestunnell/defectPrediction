@@ -77,13 +77,12 @@ check.models <- function(models, box.level, verbose = F){
   return(not.bad.models)
 }
 
-modeling.methodology <- function(ts.data, verbose = F){
+modeling.methodology <- function(ts.data, K.min, verbose = F){
   
   # Model specification
-  K_min = 4
   m <- ncol(ts.data$output) + ncol(ts.data$input)
   n <- nrow(ts.data$output)
-  p.max = floor(n/(m*K_min))
+  p.max = floor(n/(m*K.min))
   
   # Model estimation
   models <- est.models(ts.data, p.max, verbose = verbose)
@@ -100,9 +99,10 @@ modeling.methodology <- function(ts.data, verbose = F){
     cat("Selecting best model by AIC\n")
   }
   out <- capture.output(model <- bestTSestModel(not.bad.models, criterion = "aic"))
+  order <- nrow(model$model$A)-1
   if(verbose){
     cat(out)
-    cat("Selected model with order", nrow(model$model$A)-1, "\n")
+    cat("Selected model with order", order, "\n")
   }
-  return(model)
+  return(list(model = model, order = order))
 }

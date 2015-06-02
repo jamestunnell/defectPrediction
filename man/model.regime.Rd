@@ -5,7 +5,7 @@
 \title{Time series modeling methodology over a sliding window.}
 \usage{
 model.regime(ts.data, window.size, ndiff = 0, normality.signif = 0.1,
-  conf.levels = c(75, 90), out.dir = NULL, verbose = FALSE)
+  conf.levels = c(75, 90), out.dir = NULL, verbose = FALSE, K.min = 4)
 }
 \arguments{
 \item{ts.data}{An xts time series}
@@ -14,10 +14,12 @@ model.regime(ts.data, window.size, ndiff = 0, normality.signif = 0.1,
 
 \item{ndiff}{The number of differences to take. Leave at 0 if no differencing is needed.}
 
-\item{conf.levels}{Confidence level(s) to use in testing model forecast performance.
-Should be greater than 0 and less than 100.}
+\item{conf.levels}{Confidence level(s) to use in testing model forecast performance.}
 
 \item{verbose}{If TRUE, extra info is printed}
+
+\item{K.min}{The minimum allowable ratio of observations to model parameters
+Should be greater than 0 and less than 100.}
 
 \item{norm.signif}{Significance (alpha level) to use in normality testing of model residuals}
 
@@ -33,6 +35,7 @@ confidence level(s). This is a named vector.}
 \item{n.inconf}{The number of windows where the model forecast were within
 confidence level(s). This is a named vector.}
 \item{fc.errs}{Forecast errors from all the sample windows}
+\item{model.orders}{The model orders used in all windows}
 }
 \description{
 A modeling regime for setting up software defect prediction model, built using
