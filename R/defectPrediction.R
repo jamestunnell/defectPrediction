@@ -302,12 +302,32 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
     
     fname <- file.path(out.dir, paste0("qq_plot_forecast_errors.eps"))
     postscript(file=fname, width=6, height=6,
-               onefile=TRUE, horizontal=FALSE)
+               onefile=TRUE, horizontal=FALSE, colormodel = "rgb")
     qqPlot(fc.errs)
     garbage <- dev.off()
     
     df <- data.frame(model.order = model.orders, bugs.actual = bugs.actuals, fc.mean = fc.means)
     write.table(df, file = file.path(out.dir, "model.regime.txt"), row.names = F)
+
+    fname <- file.path(out.dir, paste0("bugs_actual.eps"))
+    postscript(file=fname, width=6, height=6,
+               onefile=TRUE, horizontal=FALSE, colormodel = "rgb")
+    hist(bugs.actuals, main = "Histogram of Actual Bug Counts", xlab = "Bug Count")
+    garbage <- dev.off()
+    
+    fname <- file.path(out.dir, paste0("bugs_predicted.eps"))
+    postscript(file=fname, width=6, height=6,
+               onefile=TRUE, horizontal=FALSE, colormodel = "rgb")
+    hist(fc.means, main = "Histogram of Predicted Bug Counts", xlab = "Bug Count")
+    garbage <- dev.off()
+    
+    fname <- file.path(out.dir, paste0("bugs_comparison.eps"))
+    postscript(file=fname, width=6, height=6,
+               onefile=TRUE, horizontal=FALSE, colormodel = "rgb")
+    plot(density(bugs.actuals), main = "Comparison of Bug Counts")
+    lines(density(fc.means), col="red")
+    legend("topright",legend=c("Actual","Predicted"), lty=c(1,1), col=c("black","red"))
+    garbage <- dev.off()
   }
   in.ci <- ci.inout[,"in"] / (ci.inout[,"in"] + ci.inout[,"out"])
   return(list(n.windows = n.windows,
