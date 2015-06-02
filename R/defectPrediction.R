@@ -47,6 +47,9 @@ pre.modeling <- function(issues.file, sampling.period, max.ndiff = 2,
   ts <- as.xts(data.frame(Bugs=s$bugs, Improvements=s$imps, Features=s$news), s$date)
   
   if(!is.null(out.dir)){
+#     table.fname <- file.path(out.dir, paste0("time_series_",sampling.period,".csv"))
+#     write.table(ts, file = table.fname)
+    
     # cat("Plotting time-series\n")
     plot.fname <- file.path(out.dir, paste0("time_series_",sampling.period,".eps"))
     ts.plot(ts, plot.fname)    
@@ -282,13 +285,13 @@ model.regime <- function(ts.data, window.size, ndiff=0, normality.signif = 0.1,
   
   if(!is.null(out.dir)){
     fname <- file.path(out.dir, paste0("hist_forecast_errors.eps"))
-    postscript(file=fname, width=800, height=600,
-               onefile=TRUE, horizontal=FALSE)
+    postscript(file=fname, width=8, height=6,
+               onefile=TRUE, horizontal=FALSE, colormodel = "rgb")
     hist(fc.errs, xlab = "Error of forecast mean", main = "", breaks="FD")
     garbage <- dev.off()
     
     fname <- file.path(out.dir, paste0("qq_plot_forecast_errors.eps"))
-    postscript(file=fname, width=800, height=600,
+    postscript(file=fname, width=6, height=6,
                onefile=TRUE, horizontal=FALSE)
     qqPlot(fc.errs)
     garbage <- dev.off()

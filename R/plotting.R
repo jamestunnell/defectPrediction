@@ -20,7 +20,7 @@ plot.predictions <- function(model, x.range, fname, width = 8, height = 3, cex =
   x <- x.range
   
   postscript(file=fname, width=width, height=height,
-             onefile=TRUE, horizontal=FALSE)
+             onefile=TRUE, horizontal=FALSE, colormodel = "rgb")
   #par(cex.lab=cex, cex.axis=cex, cex=cex)
   plot(x, y,main=NULL, type="l", xlab="week", ylab=colnames(y))
   lines(x,model$estimates$pred, col="red", lty=2)
